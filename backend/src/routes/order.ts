@@ -10,30 +10,27 @@ import {
 } from '../controllers/order'
 import auth, { roleGuardMiddleware } from '../middlewares/auth'
 import { validateOrderBody } from '../middlewares/validations'
-import { orderRateLimiter } from '../middlewares/rateLimit'
 import { Role } from '../models/user'
 
 const orderRouter = Router()
 
-orderRouter.post('/', auth, validateOrderBody, orderRateLimiter, createOrder)
-orderRouter.get('/all', auth, orderRateLimiter, getOrders)
-orderRouter.get('/all/me', auth, orderRateLimiter, getOrdersCurrentUser)
+orderRouter.post('/', auth, validateOrderBody, createOrder)
+orderRouter.get('/all', auth, getOrders)
+orderRouter.get('/all/me', auth, getOrdersCurrentUser)
 orderRouter.get(
     '/:orderNumber',
     auth,
     roleGuardMiddleware(Role.Admin),
-    orderRateLimiter,
     getOrderByNumber
 )
-orderRouter.get('/me/:orderNumber', auth, orderRateLimiter, getOrderCurrentUserByNumber)
+orderRouter.get('/me/:orderNumber', auth, getOrderCurrentUserByNumber)
 orderRouter.patch(
     '/:orderNumber',
     auth,
     roleGuardMiddleware(Role.Admin),
-    orderRateLimiter,
     updateOrder
 )
 
-orderRouter.delete('/:id', auth, orderRateLimiter, roleGuardMiddleware(Role.Admin), deleteOrder)
+orderRouter.delete('/:id', auth, roleGuardMiddleware(Role.Admin), deleteOrder)
 
 export default orderRouter
