@@ -5,5 +5,5 @@ export const rateLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Слишком много запросов, попробуйте позже.',
+  message: { error: 'Слишком много запросов, попробуйте позже.' },
 });
