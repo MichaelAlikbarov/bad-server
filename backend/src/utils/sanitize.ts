@@ -1,4 +1,4 @@
-import sanitizeHtml from "sanitize-html";
+import sanitizeHtml from "sanitize-html"
 
 export function sanitizeComment(comment: string): string {
     return sanitizeHtml(comment, {
