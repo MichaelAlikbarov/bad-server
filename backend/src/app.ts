@@ -18,7 +18,7 @@ const app = express()
 app.use(cookieParser())
 
 app.use(cors())
-// app.use(cors({ origin: ORIGIN_ALLOW, credentials: true }));
+app.use(cors({ origin: process.env.ORIGIN_ALLOW || 'http://localhost:3000', credentials: true }));
 // app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(serveStatic(path.join(__dirname, 'public')))
@@ -26,7 +26,7 @@ app.use(serveStatic(path.join(__dirname, 'public')))
 app.use(urlencoded({ extended: true }))
 app.use(json())
 
-app.options('*', cors())
+// app.options('*', cors())
 app.use(rateLimiter)
 app.use(helmet())
 app.use(routes)
