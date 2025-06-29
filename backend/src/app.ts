@@ -34,7 +34,7 @@ app.use(urlencoded({ extended: true }))
 app.use(json())
 
 // app.options('*', cors())
-app.set('trust proxy', true)
+app.set('trust proxy', 1)
 app.use(rateLimiter)
 app.use(helmet())
 app.use(routes)
