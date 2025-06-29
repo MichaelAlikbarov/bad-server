@@ -6,6 +6,7 @@ import express, { json, urlencoded } from 'express'
 import mongoose from 'mongoose'
 import path from 'path'
 import helmet from 'helmet'
+import fs from 'fs'
 import { DB_ADDRESS } from './config'
 import errorHandler from './middlewares/error-handler'
 import serveStatic from './middlewares/serverStatic'
@@ -20,6 +21,12 @@ app.use(cookieParser())
 app.use(cors())
 app.use(cors({ origin: process.env.ORIGIN_ALLOW || 'http://localhost:3000', credentials: true }));
 // app.use(express.static(path.join(__dirname, 'public')));
+
+const uploadPathTemp = path.join(__dirname, 'public', process.env.UPLOAD_PATH_TEMP || '')
+
+if (!fs.existsSync(uploadPathTemp)) {
+  fs.mkdirSync(uploadPathTemp, { recursive: true })
+}
 
 app.use(serveStatic(path.join(__dirname, 'public')))
 
