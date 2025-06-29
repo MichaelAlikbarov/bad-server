@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { FilterQuery, Error as MongooseError, Types } from 'mongoose'
+import { sanitizeComment } from '../utils/sanitize'
 import BadRequestError from '../errors/bad-request-error'
 import NotFoundError from '../errors/not-found-error'
 import Order, { IOrder } from '../models/order'
@@ -27,6 +28,9 @@ export const getOrders = async (
             orderDateTo,
             search,
         } = req.query
+
+        const safeLimit = Math.min(Number(limit) || 10, 10)
+        const safePage = Math.max(Number(page) || 1, 1)
 
         const filters: FilterQuery<Partial<IOrder>> = {}
 
@@ -116,8 +120,8 @@ export const getOrders = async (
 
         aggregatePipeline.push(
             { $sort: sort },
-            { $skip: (Number(page) - 1) * Number(limit) },
-            { $limit: Number(limit) },
+            { $skip: (safePage - 1) * safeLimit },
+            { $limit: safeLimit },
             {
                 $group: {
                     _id: '$_id',
@@ -133,15 +137,15 @@ export const getOrders = async (
 
         const orders = await Order.aggregate(aggregatePipeline)
         const totalOrders = await Order.countDocuments(filters)
-        const totalPages = Math.ceil(totalOrders / Number(limit))
+        const totalPages = Math.ceil(totalOrders / safeLimit)
 
         res.status(200).json({
             orders,
             pagination: {
                 totalOrders,
                 totalPages,
-                currentPage: Number(page),
-                pageSize: Number(limit),
+                currentPage: safePage,
+                pageSize: safeLimit,
             },
         })
     } catch (error) {
@@ -157,9 +161,12 @@ export const getOrdersCurrentUser = async (
     try {
         const userId = res.locals.user._id
         const { search, page = 1, limit = 5 } = req.query
+        const safeLimit = Math.min(Number(limit) || 5, 10)
+        const safePage = Math.max(Number(page) || 1, 1)
+
         const options = {
-            skip: (Number(page) - 1) * Number(limit),
-            limit: Number(limit),
+            skip: (safePage - 1) * safeLimit,
+            limit: safeLimit,
         }
 
         const user = await User.findById(userId)
@@ -185,7 +192,9 @@ export const getOrdersCurrentUser = async (
 
         if (search) {
             // если не экранировать то получаем Invalid regular expression: /+1/i: Nothing to repeat
-            const searchRegex = new RegExp(search as string, 'i')
+            const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const searchRegex = new RegExp(escapeRegExp(search as string), 'i')
+            // const searchRegex = new RegExp(search as string, 'i')
             const searchNumber = Number(search)
             const products = await Product.find({ title: searchRegex })
             const productIds = products.map((product) => product._id)
@@ -205,7 +214,7 @@ export const getOrdersCurrentUser = async (
         }
 
         const totalOrders = orders.length
-        const totalPages = Math.ceil(totalOrders / Number(limit))
+        const totalPages = Math.ceil(totalOrders / safeLimit)
 
         orders = orders.slice(options.skip, options.skip + options.limit)
 
@@ -214,8 +223,8 @@ export const getOrdersCurrentUser = async (
             pagination: {
                 totalOrders,
                 totalPages,
-                currentPage: Number(page),
-                pageSize: Number(limit),
+                currentPage: safePage,
+                pageSize: safeLimit,
             },
         })
     } catch (error) {
@@ -309,13 +318,14 @@ export const createOrder = async (
             return next(new BadRequestError('Неверная сумма заказа'))
         }
 
+        const sanitizedComment = sanitizeComment(comment)
         const newOrder = new Order({
             totalAmount: total,
             products: items,
             payment,
             phone,
             email,
-            comment,
+            comment: sanitizedComment,
             customer: userId,
             deliveryAddress: address,
         })

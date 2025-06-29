@@ -25,6 +25,7 @@ export interface IUser extends Document {
     orders: Types.ObjectId[]
     lastOrderDate: Date | null
     lastOrder: Types.ObjectId | null
+    _id: string
 }
 
 interface IUserMethods {
@@ -131,7 +132,7 @@ userSchema.pre('save', async function hashingPassword(next) {
 // Можно лучше: централизованное создание accessToken и  refresh токена
 
 userSchema.methods.generateAccessToken = function generateAccessToken() {
-    const user = this
+    const user = this;
     // Создание accessToken токена возможно в контроллере авторизации
     return jwt.sign(
         {
