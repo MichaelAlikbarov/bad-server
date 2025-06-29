@@ -95,7 +95,8 @@ export const getCustomers = async (
         }
 
         if (search) {
-            const safeSearch = escapeRegExp(search as string)
+            try {
+                            const safeSearch = escapeRegExp(search as string)
             const searchRegex = new RegExp(safeSearch, 'i')
             const orders = await Order.find(
                 {
@@ -110,6 +111,9 @@ export const getCustomers = async (
                 { name: searchRegex },
                 { lastOrder: { $in: orderIds } },
             ]
+            } catch (e) {
+                console.warn('невалидная строка', search, e)
+            }
         }
 
         const sort: { [key: string]: any } = {}
