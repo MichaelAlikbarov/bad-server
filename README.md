@@ -11,5 +11,5 @@ docker compose up -d
 4. Перейти по адресу http://localhost/ и на странице должны быть продукты.
 5. На странице http://localhost/login/ можно авторизоваться.
 6. Админка находится по адресу http://localhost/admin/
-7. ссылка на репозиторий: https://github.com/username/bad-server
+7. ссылка на репозиторий: https://github.com/MichaelAlikbarov/bad-server
 
